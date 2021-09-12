@@ -8,4 +8,4 @@ To create the Docker container, navigate to the bioSimPortal directory on your m
 
 Once the build is finished, run:
 
-`docker run -p 8080:5000 biosimportal`
+`docker run -p 5000:5000 biosimportal`
