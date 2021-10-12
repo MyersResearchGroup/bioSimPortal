@@ -23,6 +23,8 @@ RUN apt-get install python3.7 -y \
 	&& apt install openjdk-8-jdk -y \
 	&& apt install git -y \
 	&& git clone https://github.com/MyersResearchGroup/iBioSim.git
+
+# Build iBioSim
 WORKDIR /iBioSim
 RUN mvn package -Dmaven.javadoc.skip=true
 WORKDIR /
@@ -33,7 +35,8 @@ RUN apt-get -y install build-essential \
 COPY . .
 
 RUN pip3 install -r requirements.txt
-	
+
+# Build reb2sac
 WORKDIR /Dependencies
 RUN chmod +x newbuild.sh \
 	&& dos2unix newbuild.sh \
