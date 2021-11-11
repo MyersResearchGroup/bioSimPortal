@@ -2,7 +2,7 @@ from flask import Flask, request, send_file
 from flask.helpers import make_response
 from werkzeug.utils import secure_filename
 import os, zipfile, tempfile
-import iBioSimCall
+import lib
 
 app = Flask(__name__)
 
@@ -36,37 +36,28 @@ def evaluate():
 @app.route('/run', methods=['POST'])
 def run():
 
-    # delete if not needed
-    cwd = os.getcwd()
+        # temporary directory to write intermediate files to
+        #temp_dir = tempfile.TemporaryDirectory()
 
-    # temporary directory to write intermediate files to
-    temp_dir = tempfile.TemporaryDirectory()
+        #data = request.get_json(force=True)
 
-    data = request.get_json(force=True)
+        #top_level_url = data['top_level']
+        #complete_sbol = data['complete_sbol']
+        #instance_url = data['instanceUrl']
+        #genbank_url = data['genbank']
+        #size = data['size']
+        #rdf_type = data['type']
+        #shallow_sbol = data['shallow_sbol']
 
-    top_level_url = data['top_level']
-    complete_sbol = data['complete_sbol']
-    instance_url = data['instanceUrl']
-    genbank_url = data['genbank']
-    size = data['size']
-    rdf_type = data['type']
-    shallow_sbol = data['shallow_sbol']
+        #url = complete_sbol.replace('/sbol', '')
 
-    url = complete_sbol.replace('/sbol', '')
-
-    try:
-        # ~~~~~~~~~~~~~ REPLACE THIS SECTION WITH OWN RUN CODE ~~~~~~~~~~~~~~~
-        archive_url = top_level_url + '/archive'
-        output_filename = os.path.join(temp_dir.name, 'analysis_results.zip')
-        iBioSimCall.caller(archive_url, output_filename)
-        # ~~~~~~~~~~~~~~~~~~~~~~~~~~~ END SECTION ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-        return send_from_directory(temp_dir.name, download_file_name,
-                                   as_attachment=True,
-                                   attachment_filename=out_name)
-
-    except Exception as e:
-        exc_type, exc_obj, exc_tb = sys.exc_info()
-        fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-        lnum = exc_tb.tb_lineno
-        abort(400, f'Exception is: {e}, exc_type: {exc_type}, exc_obj: {exc_obj}, fname: {fname}, line_number: {lnum}, traceback: {traceback.format_exc()}')
+        try:
+            # ~~~~~~~~~~~~~ REPLACE THIS SECTION WITH OWN RUN CODE ~~~~~~~~~~~~~~~
+            archive_url = 'https://subtest.synbiohub.org/download/ECEN5003_ToggleSwitch_LukasBuecherl.omex' #top_level_url + '/archive'
+            return lib.call(archive_url)
+            # ~~~~~~~~~~~~~~~~~~~~~~~~~~~ END SECTION ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        except Exception as e:
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+            lnum = exc_tb.tb_lineno
+            abort(400, f'Exception is: {e}, exc_type: {exc_type}, exc_obj: {exc_obj}, fname: {fname}, line_number: {lnum}, traceback: {traceback.format_exc()}')
