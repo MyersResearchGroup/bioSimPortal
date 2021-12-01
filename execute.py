@@ -261,8 +261,9 @@ def exec(request, type, tempDir):
     
     output = None
     
-    reb2sacDir = r"full/path/to/reb2sac/src:"
-    os.environ["PATH"] = reb2sacDir + os.environ["PATH"]
+    os.environ["BIOSIM"] = r"/iBioSim"
+    os.environ["PATH"] = os.environ["BIOSIM"]+r"/bin:"+os.environ["BIOSIM"]+r"/lib:"+os.environ["PATH"]
+    os.environ["LD_LIBRARY_PATH"] = os.environ["BIOSIM"] + r"/lib:"
 
     if type == 'conversion' or type == 'both':
         # run conversion
