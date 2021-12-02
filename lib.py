@@ -4,6 +4,7 @@ from werkzeug.utils import secure_filename
 import requests
 import os, zipfile, tempfile
 
+# Function for the analysis
 def analysis(url: str, dest_path: str):
     filename = url.split('/')[-1].replace(" ", "_")  # be careful with file names
     file_path = os.path.join(dest_path, filename)
@@ -20,8 +21,10 @@ def analysis(url: str, dest_path: str):
     else:
         print("Download failed: status code {}\n{}".format(r.status_code, r.text))
 
+    # Command to run the analysis using iBioSim
     cmd = r"java -jar iBioSim/analysis/target/iBioSim-analysis-3.1.0-SNAPSHOT-jar-with-dependencies.jar "
     print("Running: " + cmd + file_path)
+    # Running the command
     os.system(cmd + file_path)
 
     print('Running ls')
@@ -29,15 +32,15 @@ def analysis(url: str, dest_path: str):
     nP = file_path[:file_path.rfind('/')] + '/' + name
     os.system('ls ' + nP)
 
+    # Find the image of the results
     for file in os.listdir(nP):
         if file.endswith(".png"):
             image = os.path.join(nP, file)
 
     print(image)
 
+    # Return the image
     return image
-
-    #send_file(image, as_attachment=True, attachment_filename='Test.png')
 
 def call(archive_url):
 
