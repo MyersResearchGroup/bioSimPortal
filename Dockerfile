@@ -15,6 +15,8 @@ LABEL maintainer="Chris Myers <chris.myers@colorado.edu>"
 # Install requirements
 RUN apt-get update --fix-missing \
 	&& DEBIAN_FRONTEND=noninteractive
+	
+COPY . .
 
 RUN pip3 install -r requirements.txt
 
