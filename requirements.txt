@@ -6,4 +6,4 @@ Jinja2==3.0.1
 MarkupSafe==2.0.1
 Werkzeug==2.0.1
 requests==2.26.0
-setuptools==60.5.0
+setuptools==59.6.0
