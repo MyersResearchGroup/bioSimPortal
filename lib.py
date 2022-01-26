@@ -22,7 +22,7 @@ def analysis(url: str, dest_path: str):
         print("Download failed: status code {}\n{}".format(r.status_code, r.text))
 
     # Command to run the analysis using iBioSim
-    cmd = r"java -jar analysis/target/iBioSim-analysis-3.1.0-SNAPSHOT-jar-with-dependencies.jar "
+    cmd = r"java -jar iBioSim/analysis/target/iBioSim-analysis-3.1.0-SNAPSHOT-jar-with-dependencies.jar "
     print("Running: " + cmd + file_path)
     # Running the command
     os.system(cmd + file_path)
