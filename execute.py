@@ -76,7 +76,7 @@ def exec_analysis_jar(tempDir, archive_file, out_dir, directory, properties, ini
         print('Wrong file type')
         raise FileNotFoundError("File does not exist: {}".format(archive_file))
 
-    cmd = r"java -jar iBioSim/analysis/target/iBioSim-analysis-3.1.0-SNAPSHOT-jar-with-dependencies.jar " #hode sim is java based
+    cmd = r"java -jar analysis/target/iBioSim-analysis-3.1.0-SNAPSHOT-jar-with-dependencies.jar " #hode sim is java based
     if not directory == None:
         cmd += "-d " + directory + " "
     if not properties == None:
@@ -127,7 +127,7 @@ def exec_conversion_jar(tempDir, sbolFile, package, b, cf, d, e, esf, f, i, l, m
 
     outputDir = ''
 
-    cmd = r"java -jar iBioSim/conversion/target/iBioSim-conversion-3.1.0-SNAPSHOT-jar-with-dependencies.jar "
+    cmd = r"java -jar conversion/target/iBioSim-conversion-3.1.0-SNAPSHOT-jar-with-dependencies.jar "
     # add args to command
     if not b == None:
         cmd += '-b ' + b + ' '
@@ -261,9 +261,12 @@ def exec(request, type, tempDir):
 
     output = None
 
-    os.environ["BIOSIM"] = r"/iBioSim"
-    os.environ["PATH"] = os.environ["BIOSIM"]+r"/bin:"+os.environ["BIOSIM"]+r"/lib:"+os.environ["PATH"]
-    os.environ["LD_LIBRARY_PATH"] = os.environ["BIOSIM"] + r"/lib:"
+    #os.environ["BIOSIM"] = r"/iBioSim"
+    #os.environ["PATH"] = os.environ["BIOSIM"]+r"/bin:"+os.environ["BIOSIM"]+r"/lib:"+os.environ["PATH"]
+    #os.environ["LD_LIBRARY_PATH"] = os.environ["BIOSIM"] + r"/lib:"
+
+    os.environ["PATH"] = r"/bin:"+r"/lib:"+os.environ["PATH"]
+    os.environ["LD_LIBRARY_PATH"] =  r"/lib:"
 
     if type == 'conversion' or type == 'both':
         # run conversion
