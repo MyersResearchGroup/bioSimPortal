@@ -1,6 +1,6 @@
 from flask.helpers import make_response
 from werkzeug.utils import secure_filename
-import os, zipfile, tempfile
+import os, zipfile
 
 class argData:
     def __init__(self):
@@ -19,31 +19,24 @@ def analysis(tempDir, argsDict, pathToInFile):
     # Get omex or SED-ML file from the zip
     filePath = ''
     dirToArchive = tempDir
-    if(pathToInFile.endswith('.zip')):
+    if(pathToInFile.endswith('.zip') or pathToInFile.endswith('.omex')):
         dirToArchive = os.path.join(tempDir, 'combine_archive')
         os.makedirs(dirToArchive)
-        print('Extracting from zip...')
-        with zipfile.ZipFile(pathToInFile, 'r') as ca:
-            ca.extractall(dirToArchive)
 
-        path_to_omex = None
-        path_to_sedml = None
-
-        for filename in os.listdir(dirToArchive):
-            file = os.path.join(dirToArchive, filename)
-            if file.endswith('.omex'):
-                path_to_omex = file
-                break
-            if file.endswith('.sedml'):
-                path_to_sedml = file
-                break
-        # send OMEX, SED-ML, or topModule SBML file to iBioSim
-        filePath = path_to_omex
-        if path_to_omex == None:
-            filePath = path_to_sedml
-            if path_to_sedml == None:
-                print('Error: Failed to locate OMEX or SED-ML file in directory.')
-                return(make_response('Error: Missing omex/sedml file from combine archive', 202))
+        if pathToInFile.endswith('.omex'):
+            filePath = pathToInFile
+        else:
+            print('Extracting from zip...')
+            os.system('unzip ' + pathToInFile + ' -d ' + dirToArchive)
+            for filename in os.listdir(dirToArchive):
+                file = os.path.join(dirToArchive, filename)
+                if file.endswith('.omex') or file.endswith('.sedml'):
+                    filePath = file
+                    break
+        # send OMEX or SED-ML file to iBioSim
+        if filePath == None:
+            print('Error: Failed to locate OMEX or SED-ML file in directory.')
+            return(make_response('Error: Missing omex/sedml file from combine archive', 202))
         print('Done. Extracted file to: ' + filePath.__str__())
 
     # otherwise, the input file was the top module SBML, so check for all the proper arguments to run the first-time simulation
@@ -76,7 +69,7 @@ def exec_analysis_jar(tempDir, archive_file, out_dir, directory, properties, ini
         print('Wrong file type')
         raise FileNotFoundError("File does not exist: {}".format(archive_file))
 
-    cmd = r"java -jar iBioSim/analysis/target/iBioSim-analysis-3.1.0-SNAPSHOT-jar-with-dependencies.jar " #hode sim is java based
+    cmd = r"java -jar analysis/target/iBioSim-analysis-3.1.0-SNAPSHOT-jar-with-dependencies.jar " #hode sim is java based
     if not directory == None:
         cmd += "-d " + directory + " "
     if not properties == None:
@@ -127,7 +120,7 @@ def exec_conversion_jar(tempDir, sbolFile, package, b, cf, d, e, esf, f, i, l, m
 
     outputDir = ''
 
-    cmd = r"java -jar iBioSim/conversion/target/iBioSim-conversion-3.1.0-SNAPSHOT-jar-with-dependencies.jar "
+    cmd = r"java -jar conversion/target/iBioSim-conversion-3.1.0-SNAPSHOT-jar-with-dependencies.jar "
     # add args to command
     if not b == None:
         cmd += '-b ' + b + ' '
@@ -174,7 +167,7 @@ def exec_conversion_jar(tempDir, sbolFile, package, b, cf, d, e, esf, f, i, l, m
     else:
         outputDir = os.path.join(tempDir,'modules/')
         os.system('mkdir ' + outputDir)
-        cmd += '-o ' + outputDir + 'collection.xml '
+        cmd += '-o ' + outputDir + 'topModel.xml '
 
     print("Running: " + cmd + sbolFile)
 
@@ -187,9 +180,9 @@ def exec_conversion_jar(tempDir, sbolFile, package, b, cf, d, e, esf, f, i, l, m
         recursiveZipOutputFiles(tempDir, z)
         return pathToZip
     else:
-        print('Returning topModule file')
+        print('Returning topModel file')
         for f in os.listdir(outputDir):
-            if f.endswith('topModule.xml'):
+            if f.endswith('topModel.xml'):
                 return os.path.join(outputDir, f)
         return ''
 
@@ -246,7 +239,7 @@ def exec(request, type, tempDir):
         if not argsDict[key] == None:
             argsDict[key] = str(argsDict[key])
 
-    # Get archive file from HTTP request body
+    # Get file from HTTP request body
     f = None
     if not 'file' in request.files:
         # print(request.files)
@@ -254,8 +247,22 @@ def exec(request, type, tempDir):
         return(make_response('Error: Expected input file, none found', 202))
     f = request.files['file']
 
-    # Save file locally
 
+    # check if environment archive was provided
+    env_archive = None
+    pathToArchive = None
+    if not 'archive' in request.files:
+        print('No simulation archive found.')
+    else:
+        env_archive = request.files['archive']
+        if not env_archive.__str__().endswith('.zip') or not env_archive.__str__().endswith('.omex'):
+            print('Archive not valid extension.')
+        else:
+            pathToArchive = os.path.join(tempDir, secure_filename(env_archive.filename))
+            env_archive.save(pathToArchive)
+        
+
+    # Save file locally
     pathToInFile = os.path.join(tempDir, secure_filename(f.filename))
     f.save(pathToInFile)
 
@@ -265,12 +272,45 @@ def exec(request, type, tempDir):
     os.environ["PATH"] = os.environ["BIOSIM"]+r"/bin:"+os.environ["BIOSIM"]+r"/lib:"+os.environ["PATH"]
     os.environ["LD_LIBRARY_PATH"] = os.environ["BIOSIM"] + r"/lib:"
 
-    if type == 'conversion' or type == 'both':
-        # run conversion
-        p = True
-        if type == 'both':
-            p = False
-        output = conversion(tempDir, argsDict, pathToInFile, p)
+    # run conversion
+    if type == 'both':
+        if pathToArchive == None:
+            output = conversion(tempDir, argsDict, pathToInFile, package=False)
+            return output
+        else:
+            print("Path to archive: " + pathToArchive)
+            # get all generated files from conversion
+            print("Run conversion...")
+            conv_output = conversion(tempDir, argsDict, pathToInFile, package=True)
+            print("Path to conversion output: " + conv_output)
+
+            # extract files from empty archive into env_erchive directory
+            pathToArcDir = os.path.join(tempDir, 'env_archive')
+            os.system('mkdir ' + pathToArcDir)
+            os.system('unzip ' + pathToArchive + ' -d ' + pathToArcDir)
+            
+            # delete template topModel file
+            pathToTemplate = os.path.join(pathToArcDir, 'topModel.xml')
+            os.system('rm ' + pathToTemplate)
+
+            # extract files from conversion output to conv_out directory
+            pathToConvOutDir = os.path.join(tempDir, 'conv_out')
+            os.system('mkdir ' + pathToConvOutDir)
+            with zipfile.ZipFile(conv_output, 'r') as conv:
+                conv.extractall(pathToConvOutDir)
+            
+            # copy all files from conv_out into env_archive directory
+            for f in os.listdir(pathToConvOutDir):
+                os.system('cp ' + os.path.join(pathToConvOutDir, f) + ' ' + pathToArcDir)
+
+            # re-package archive, return zip file
+            pathToZip = os.path.join(tempDir,'conv_archive.zip')
+            z = zipfile.ZipFile(pathToZip, 'w')
+            recursiveZipOutputFiles(pathToArcDir, z)
+            return pathToZip
+
+    elif type == 'conversion':
+        output = conversion(tempDir, argsDict, pathToInFile, package=True)
         return output
     elif type == 'analysis':
         # run analysis

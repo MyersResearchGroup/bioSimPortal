@@ -1,8 +1,7 @@
-from flask import Flask, request, redirect, url_for, send_file
+from flask import Flask, request, redirect, url_for, send_file, send_from_directory, abort
 from flask.helpers import make_response
-from werkzeug.utils import secure_filename
 import execute as ex
-import os, zipfile, tempfile
+import os, tempfile
 import sys
 import lib
 
@@ -36,16 +35,26 @@ def conv_and_sim():
     print('Running conversion and analysis!')
     with tempfile.TemporaryDirectory() as tempDir:
         c_output = ex.exec(request, 'both', tempDir)
-        if(c_output == ''):
+        if c_output == '':
             return make_response('An error occured during conversion', 202)
+        
+        # if conversion returns a zip file, send the archive straight to analysis
+        if c_output.endswith('.zip'):
+            output = ex.analysis(tempDir, ex.args.getArgs(), c_output)
+            return send_file(output, as_attachment=True, attachment_filename='sim_output.zip')
+
+        # otherwise, simulate topModule with default/given parameters
         # copy topModule file to new working tempDir
         with tempfile.TemporaryDirectory() as aTempDir:
             os.system('cp ' + c_output + ' ' + aTempDir)
 
             topMod = os.listdir(aTempDir)[0]
-            pathToTopMod = os.path.join(aTempDir, topMod)
+            print("topMod: " + topMod)
+            conv_output = os.path.join(aTempDir, topMod)
+            print("conversion output: " + conv_output)
 
-            output = ex.analysis(aTempDir, ex.args.getArgs(), pathToTopMod)
+            print("analysis...")
+            output = ex.analysis(aTempDir, ex.args.getArgs(), conv_output)
             return send_file(output, as_attachment=True, attachment_filename='sim_output.zip')
 
 @app.route('/status', methods=['GET', 'POST'])

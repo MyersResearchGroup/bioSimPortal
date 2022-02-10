@@ -15,6 +15,8 @@ LABEL maintainer="Chris Myers <chris.myers@colorado.edu>"
 # Install requirements
 RUN apt-get update --fix-missing \
 	&& DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get install -y unzip
 	
 COPY . .
 
