@@ -133,3 +133,7 @@ The endpoint can be reached at `https://ibiosim.synbiohub.org/run` and checked b
 }`
 
 Please make sure to make the according changes to the _instanceUrl_, _complete_sbol_, etc.
+
+## Install locally using Docker
+
+To install an image of the plug-in locally run `docker pull synbiohub/plugin-download-ibiosim:snapshot`. Run the plugin with `docker run -p 8080:5000 synbiohub/plugin-download-ibiosim:snapshot`. Check it is up using localhost:8080.
