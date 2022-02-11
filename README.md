@@ -102,10 +102,34 @@ Argument key-value pairs follow the previously specified formats. Any and all ar
 
 # Plug-in Endpoints
 
-*Plug-in endpoint information*
+A Download plugin for SynBioHub using the iBioSim Server API. The plugin has 3 endpoints _status_, _evaluate_, and _run_. A public instance of the iBioSim server is located at `https://ibiosim.synbiohub.org`.
 
 ## Status
 
+The status endpoint is located at `https://ibiosim.synbiohub.org/status`. SynBioHub sends a status request to the status endpoint, the plugin returns a conformation if active and running. The endpoint can be accessed using a web browser or an application like Postman using a GET request.
+
 ## Evaluate
 
+The evaluate request tests whether the plugin can handle the data that SynBioHub wishes to send. For the iBioSim plugin the data type has to be _collection_.
+
+The endpoint can be reached at `https://ibiosim.synbiohub.org/evaluate` and checked by Postman using a POST request with the following body:
+
+`{"type": "Collection"}`
+
 ## Run
+
+SynBioHub sends the data to the run endpoint and downloads the final results of the simulated _.omex_ file as a _.png_.
+
+The endpoint can be reached at `https://ibiosim.synbiohub.org/run` and checked by Postman using a POST request with an example body like followed:
+
+`{
+	"instanceUrl": "https://synbiohub.org/",
+	"complete_sbol": "https://synbiohub.org/public/iGEM_2016_interlab/iGEM_2016_interlab_collection/1/sbol",
+	"genbank": "https://synbiohub.org/public/iGEM_2016_interlab/iGEM_2016_interlab_collection/1/gb",
+	"top_level": "https://synbiohub.org/public/iGEM_2016_interlab/iGEM_2016_interlab_collection/1",
+	"size": 7,
+	"type": "Collection",
+	"shallow_sbol": "https://synbiohub.org/public/iGEM_2016_interlab/iGEM_2016_interlab_collection/1/sbolnr"
+}`
+
+Please make sure to make the according changes to the _instanceUrl_, _complete_sbol_, etc.
