@@ -17,16 +17,16 @@ args = argData()
 
 def analysis(tempDir, argsDict, pathToInFile):
     # Get omex or SED-ML file from the zip
-    filePath = ''
+    filePath = None
     dirToArchive = tempDir
-    if(pathToInFile.endswith('.zip') or pathToInFile.endswith('.omex')):
+    if pathToInFile.endswith('.zip') or pathToInFile.endswith('.omex'):
         dirToArchive = os.path.join(tempDir, 'combine_archive')
         os.makedirs(dirToArchive)
 
         if pathToInFile.endswith('.omex'):
             filePath = pathToInFile
         else:
-            print('Extracting from zip...')
+            print('Extracting from zip...', file=open('pylog.txt', 'a'))
             os.system('unzip ' + pathToInFile + ' -d ' + dirToArchive)
             for filename in os.listdir(dirToArchive):
                 file = os.path.join(dirToArchive, filename)
@@ -35,22 +35,22 @@ def analysis(tempDir, argsDict, pathToInFile):
                     break
         # send OMEX or SED-ML file to iBioSim
         if filePath == None:
-            print('Error: Failed to locate OMEX or SED-ML file in directory.')
-            return(make_response('Error: Missing omex/sedml file from combine archive', 202))
-        print('Done. Extracted file to: ' + filePath.__str__())
+            print('Error: Failed to locate OMEX or SED-ML file in directory.', file=open('pylog.txt', 'a'))
+            return make_response('Error: Missing omex/sedml file from combine archive', 202)
+        print('Done. Extracted file to: ' + filePath.__str__(), file=open('pylog.txt', 'a'))
 
     # otherwise, the input file was the top module SBML, so check for all the proper arguments to run the first-time simulation
     else:
         filePath = pathToInFile
         # check for args
         if argsDict['sim'] == None:
-            print('No simulation type given, defaulting to jode')
+            print('No simulation type given, defaulting to jode', file=open('pylog.txt', 'a'))
             argsDict['sim'] = 'jode'
         if argsDict['limTime'] == None:
-            print('No time limit given, defaulting to 250')
+            print('No time limit given, defaulting to 250', file=open('pylog.txt', 'a'))
             argsDict['limTime'] = '250'
         if argsDict['runs'] == None:
-            print('No run count given, defaulting to 1')
+            print('No run count given, defaulting to 1', file=open('pylog.txt', 'a'))
             argsDict['runs'] = '1'
 
     return exec_analysis_jar(tempDir, filePath, dirToArchive, argsDict['projectDir'], argsDict['props'], argsDict['initTime'],argsDict['limTime'], argsDict['outTime'], argsDict['pInterval'], argsDict['minStep'],argsDict['maxStep'], argsDict['absErr'], argsDict['relErr'], argsDict['seed'], argsDict['runs'], argsDict['sim'])
@@ -66,7 +66,7 @@ def exec_analysis_jar(tempDir, archive_file, out_dir, directory, properties, ini
     #print(os.path.isfile(archive_file))
 
     if not os.path.isfile(archive_file):
-        print('Wrong file type')
+        print('Wrong file type', file=open('pylog.txt', 'a'))
         raise FileNotFoundError("File does not exist: {}".format(archive_file))
 
     cmd = r"java -jar analysis/target/iBioSim-analysis-3.1.0-SNAPSHOT-jar-with-dependencies.jar " #hode sim is java based
@@ -97,12 +97,12 @@ def exec_analysis_jar(tempDir, archive_file, out_dir, directory, properties, ini
     if not simulation == None:
         cmd += "-sim "  + simulation + " "
 
-    print("Running: " + cmd + archive_file)
+    print("Running: " + cmd + archive_file, file=open('pylog.txt', 'a'))
 
     os.system(cmd + archive_file)
 
     # Put output files into zipfile
-    print('Analysis complete, collecting output!')
+    print('Analysis complete, collecting output!', file=open('pylog.txt', 'a'))
     pathToZip = os.path.join(tempDir,'out.zip')
     z = zipfile.ZipFile(pathToZip, 'w')
     if out_dir == None:
@@ -115,7 +115,7 @@ def exec_conversion_jar(tempDir, sbolFile, package, b, cf, d, e, esf, f, i, l, m
     # Execute the conversion jar on the inputted SBOL file
 
     if not os.path.isfile(sbolFile):
-        print('Wrong file type')
+        print('Wrong file type', file=open('pylog.txt', 'a'))
         raise FileNotFoundError("File does not exist: {}".format(sbolFile))
 
     outputDir = ''
@@ -169,18 +169,18 @@ def exec_conversion_jar(tempDir, sbolFile, package, b, cf, d, e, esf, f, i, l, m
         os.system('mkdir ' + outputDir)
         cmd += '-o ' + outputDir + 'topModel.xml '
 
-    print("Running: " + cmd + sbolFile)
+    print("Running: " + cmd + sbolFile, file=open('pylog.txt', 'a'))
 
     os.system(cmd + sbolFile)
-    print('Conversion complete, collecting output!')
+    print('Conversion complete, collecting output!', file=open('pylog.txt', 'a'))
     if package:
-        print('Collecting to zip...')
+        print('Collecting to zip...', file=open('pylog.txt', 'a'))
         pathToZip = os.path.join(tempDir,'out.zip')
         z = zipfile.ZipFile(pathToZip, 'w')
         recursiveZipOutputFiles(tempDir, z)
         return pathToZip
     else:
-        print('Returning topModel file')
+        print('Returning topModel file', file=open('pylog.txt', 'a'))
         for f in os.listdir(outputDir):
             if f.endswith('topModel.xml'):
                 return os.path.join(outputDir, f)
@@ -243,7 +243,7 @@ def exec(request, type, tempDir):
     f = None
     if not 'file' in request.files:
         # print(request.files)
-        print('Error: Expected input file, none found')
+        print('Error: Expected input file, none found', file=open('pylog.txt', 'a'))
         return(make_response('Error: Expected input file, none found', 202))
     f = request.files['file']
 
@@ -252,14 +252,15 @@ def exec(request, type, tempDir):
     env_archive = None
     pathToArchive = None
     if not 'archive' in request.files:
-        print('No simulation archive found.')
+        print('No simulation archive found.', file=open('pylog.txt', 'a'))
     else:
         env_archive = request.files['archive']
-        if not env_archive.__str__().endswith('.zip') or not env_archive.__str__().endswith('.omex'):
-            print('Archive not valid extension.')
+        if not secure_filename(env_archive.filename).endswith('.zip') and not secure_filename(env_archive.filename).endswith('.omex'):
+            print('Archive not valid extension.', file=open('pylog.txt', 'a'))
         else:
             pathToArchive = os.path.join(tempDir, secure_filename(env_archive.filename))
             env_archive.save(pathToArchive)
+            print('Saved environment archive to ' + pathToArchive, file=open('pylog.txt', 'a'))
         
 
     # Save file locally
@@ -278,16 +279,18 @@ def exec(request, type, tempDir):
             output = conversion(tempDir, argsDict, pathToInFile, package=False)
             return output
         else:
-            print("Path to archive: " + pathToArchive)
+            print("Path to archive: " + pathToArchive, file=open('pylog.txt', 'a'))
             # get all generated files from conversion
-            print("Run conversion...")
+            print("Run conversion...", file=open('pylog.txt', 'a'))
             conv_output = conversion(tempDir, argsDict, pathToInFile, package=True)
-            print("Path to conversion output: " + conv_output)
+            print("Path to conversion output: " + conv_output, file=open('pylog.txt', 'a'))
 
             # extract files from empty archive into env_erchive directory
             pathToArcDir = os.path.join(tempDir, 'env_archive')
             os.system('mkdir ' + pathToArcDir)
             os.system('unzip ' + pathToArchive + ' -d ' + pathToArcDir)
+            print('After unzipping archive:', file=open('pylog.txt', 'a'))
+            print(os.listdir(pathToArcDir), file=open('pylog.txt', 'a'))
             
             # delete template topModel file
             pathToTemplate = os.path.join(pathToArcDir, 'topModel.xml')
@@ -296,8 +299,9 @@ def exec(request, type, tempDir):
             # extract files from conversion output to conv_out directory
             pathToConvOutDir = os.path.join(tempDir, 'conv_out')
             os.system('mkdir ' + pathToConvOutDir)
-            with zipfile.ZipFile(conv_output, 'r') as conv:
-                conv.extractall(pathToConvOutDir)
+            os.system('unzip ' + conv_output + ' -d ' + pathToConvOutDir)
+            print('After unzipping output: ' + pathToConvOutDir, file=open('pylog.txt', 'a'))
+            print(os.listdir(pathToConvOutDir), file=open('pylog.txt', 'a'))
             
             # copy all files from conv_out into env_archive directory
             for f in os.listdir(pathToConvOutDir):
@@ -307,6 +311,8 @@ def exec(request, type, tempDir):
             pathToZip = os.path.join(tempDir,'conv_archive.zip')
             z = zipfile.ZipFile(pathToZip, 'w')
             recursiveZipOutputFiles(pathToArcDir, z)
+            print('After copying (should be environment archive): ' + pathToZip, file=open('pylog.txt', 'a'))
+            print(os.listdir(pathToArcDir), file=open('pylog.txt', 'a'))
             return pathToZip
 
     elif type == 'conversion':
@@ -324,4 +330,5 @@ def recursiveZipOutputFiles(path, zipf):
         if os.path.isdir(p):
             recursiveZipOutputFiles(p, zipf)
         elif not p.endswith('.zip'):
-            zipf.write(p)
+            # print(p.split('/')[-1], file=open('pylog.txt', 'a'))
+            zipf.write(p, arcname=p.split('/')[-1])
