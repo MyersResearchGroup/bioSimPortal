@@ -19,25 +19,27 @@ def analysis(tempDir, argsDict, pathToInFile):
     # Get omex or SED-ML file from the zip
     filePath = None
     dirToArchive = tempDir
+    
     if pathToInFile.endswith('.zip') or pathToInFile.endswith('.omex'):
-        dirToArchive = os.path.join(tempDir, 'combine_archive')
-        os.makedirs(dirToArchive)
+        filePath = pathToInFile
+        # dirToArchive = os.path.join(tempDir, 'combine_archive')
+        # os.makedirs(dirToArchive)
 
-        if pathToInFile.endswith('.omex'):
-            filePath = pathToInFile
-        else:
-            print('Extracting from zip...', file=open('pylog.txt', 'a'))
-            os.system('unzip ' + pathToInFile + ' -d ' + dirToArchive)
-            for filename in os.listdir(dirToArchive):
-                file = os.path.join(dirToArchive, filename)
-                if file.endswith('.omex') or file.endswith('.sedml'):
-                    filePath = file
-                    break
-        # send OMEX or SED-ML file to iBioSim
-        if filePath == None:
-            print('Error: Failed to locate OMEX or SED-ML file in directory.', file=open('pylog.txt', 'a'))
-            return make_response('Error: Missing omex/sedml file from combine archive', 202)
-        print('Done. Extracted file to: ' + filePath.__str__(), file=open('pylog.txt', 'a'))
+        # if pathToInFile.endswith('.omex'):
+        #     filePath = pathToInFile
+        # else:
+        #     print('Extracting from zip...', file=open('pylog.txt', 'a'))
+        #     os.system('unzip ' + pathToInFile + ' -d ' + dirToArchive)
+        #     for filename in os.listdir(dirToArchive):
+        #         file = os.path.join(dirToArchive, filename)
+        #         if file.endswith('.omex') or file.endswith('.sedml'):
+        #             filePath = file
+        #             break
+        # # send OMEX or SED-ML file to iBioSim
+        # if filePath == None:
+        #     print('Error: Failed to locate OMEX or SED-ML file in directory.', file=open('pylog.txt', 'a'))
+        #     return make_response('Error: Missing omex/sedml file from combine archive', 202)
+        # print('Done. Extracted file to: ' + filePath.__str__(), file=open('pylog.txt', 'a'))
 
     # otherwise, the input file was the top module SBML, so check for all the proper arguments to run the first-time simulation
     else:
@@ -173,11 +175,16 @@ def exec_conversion_jar(tempDir, sbolFile, package, b, cf, d, e, esf, f, i, l, m
 
     os.system(cmd + sbolFile)
     print('Conversion complete, collecting output!', file=open('pylog.txt', 'a'))
+    # move sbol file into modules to for better packaging
+    try:
+        os.system('mv ' + sbolFile + ' ' + outputDir)
+    except:
+        print('Unable to move SBOL file to tmp/.../modules/ directory', file=open('pylog.txt', 'a'))
     if package:
         print('Collecting to zip...', file=open('pylog.txt', 'a'))
         pathToZip = os.path.join(tempDir,'out.zip')
         z = zipfile.ZipFile(pathToZip, 'w')
-        recursiveZipOutputFiles(tempDir, z)
+        recursiveZipOutputFiles(outputDir, z)
         return pathToZip
     else:
         print('Returning topModel file', file=open('pylog.txt', 'a'))
@@ -303,9 +310,9 @@ def exec(request, type, tempDir):
             print('After unzipping output: ' + pathToConvOutDir, file=open('pylog.txt', 'a'))
             print(os.listdir(pathToConvOutDir), file=open('pylog.txt', 'a'))
             
-            # copy all files from conv_out into env_archive directory
+            # move all files from conv_out into env_archive directory
             for f in os.listdir(pathToConvOutDir):
-                os.system('cp ' + os.path.join(pathToConvOutDir, f) + ' ' + pathToArcDir)
+                os.system('mv ' + os.path.join(pathToConvOutDir, f) + ' ' + pathToArcDir)
 
             # re-package archive, return zip file
             pathToZip = os.path.join(tempDir,'conv_archive.zip')
