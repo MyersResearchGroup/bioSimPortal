@@ -13,8 +13,7 @@ jobs:
       name: Checkout source code
     - name: Build the Docker image
       run: |
-        repo_name_lower=$(echo ${{ github.event.repository.name }}| tr [:upper:] [:lower:])
-        tag="synbiohub/${repo_name_lower}:snapshot"
+        tag="geneticlogiclab/bioSimPortal:snapshot"
         echo $tag
         docker build . --tag $tag
     - uses: azure/docker-login@v1
@@ -23,7 +22,6 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
     - name: Push the image to Docker Hub
       run: |
-        repo_name_lower=$(echo ${{ github.event.repository.name }}| tr [:upper:] [:lower:])
-        tag="synbiohub/${repo_name_lower}:snapshot"
+        tag="geneticlogiclab/bioSimPortal:snapshot"
         echo $tag
         docker push $tag
