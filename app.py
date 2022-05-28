@@ -1,3 +1,5 @@
+from multiprocessing.connection import wait
+from time import sleep
 from flask import Flask, request, redirect, url_for, send_file, send_from_directory, abort
 from flask.helpers import make_response
 import execute as ex
@@ -7,6 +9,10 @@ import lib
 
 app = Flask(__name__)
 
+#Set up logfile
+
+os.system('touch pylog.txt')
+
 # Start API
 @app.route('/', methods=["POST, GET"])
 def default():
@@ -14,7 +20,7 @@ def default():
 
 @app.route('/analyze', methods=['POST'])
 def analyze():
-    print('Running analysis!')
+    print('Running analysis!', file=open('pylog.txt', 'a'))
     with tempfile.TemporaryDirectory() as tempDir:
         output = ex.exec(request, 'analysis', tempDir)
         if(output == -1):
@@ -23,7 +29,7 @@ def analyze():
 
 @app.route('/convert', methods=['POST'])
 def convert():
-    print('Running conversion!')
+    print('Running conversion!', file=open('pylog.txt', 'a'))
     with tempfile.TemporaryDirectory() as tempDir:
         output = ex.exec(request, 'conversion', tempDir)
         if(output == -1):
@@ -32,13 +38,14 @@ def convert():
 
 @app.route('/convert_and_simulate', methods=['POST'])
 def conv_and_sim():
-    print('Running conversion and analysis!')
+    print('Running conversion and analysis!', file=open('pylog.txt', 'a'))
     with tempfile.TemporaryDirectory() as tempDir:
         c_output = ex.exec(request, 'both', tempDir)
         if c_output == '':
             return make_response('An error occured during conversion', 202)
         
         # if conversion returns a zip file, send the archive straight to analysis
+        print("Run analysis...", file=open('pylog.txt', 'a'))
         if c_output.endswith('.zip'):
             output = ex.analysis(tempDir, ex.args.getArgs(), c_output)
             return send_file(output, as_attachment=True, attachment_filename='sim_output.zip')
@@ -49,12 +56,13 @@ def conv_and_sim():
             os.system('cp ' + c_output + ' ' + aTempDir)
 
             topMod = os.listdir(aTempDir)[0]
-            print("topMod: " + topMod)
+            print("topMod: " + topMod, file=open('pylog.txt', 'a'))
             conv_output = os.path.join(aTempDir, topMod)
-            print("conversion output: " + conv_output)
+            print("conversion output: " + conv_output, file=open('pylog.txt', 'a'))
 
-            print("analysis...")
+            
             output = ex.analysis(aTempDir, ex.args.getArgs(), conv_output)
+            # sleep(100)
             return send_file(output, as_attachment=True, attachment_filename='sim_output.zip')
 
 @app.route('/status', methods=['GET', 'POST'])
