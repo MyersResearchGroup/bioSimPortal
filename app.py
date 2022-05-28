@@ -47,7 +47,10 @@ def conv_and_sim():
         # if conversion returns a zip file, send the archive straight to analysis
         print("Run analysis...", file=open('pylog.txt', 'a'))
         if c_output.endswith('.zip'):
-            output = ex.analysis(tempDir, ex.args.getArgs(), c_output)
+            c_omex = os.path.join(tempDir,'c.omex')
+            os.system('mv ' + c_output + ' ' + c_omex)
+            
+            output = ex.analysis(tempDir, ex.args.getArgs(), c_omex)
             return send_file(output, as_attachment=True, attachment_filename='sim_output.zip')
 
         # otherwise, simulate topModule with default/given parameters
