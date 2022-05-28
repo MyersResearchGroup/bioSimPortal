@@ -84,7 +84,7 @@ def exec_analysis_jar(tempDir, archive_file, out_dir, directory, properties, ini
         cmd += "-r " + runs + " "
     if not simulation == None:
         cmd += "-sim "  + simulation + " "
-    cmd += "-outDir " + out_dir
+    cmd += "-outDir " + out_dir + " "
     print("Running: " + cmd + archive_file, file=open('pylog.txt', 'a'))
 
     os.system(cmd + archive_file)
