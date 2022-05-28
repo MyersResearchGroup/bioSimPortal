@@ -50,7 +50,7 @@ def conv_and_sim():
             c_omex = os.path.join(tempDir,'c.omex')
             os.system('mv ' + c_output + ' ' + c_omex)
             
-            output = ex.analysis(tempDir, ex.args.getArgs(), os.path.basename(c_omex))
+            output = ex.analysis(tempDir, ex.args.getArgs(), c_omex[1:])
             return send_file(output, as_attachment=True, attachment_filename='sim_output.zip')
 
         # otherwise, simulate topModule with default/given parameters
