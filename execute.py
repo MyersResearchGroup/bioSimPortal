@@ -26,7 +26,7 @@ def analysis(tempDir, argsDict, pathToInFile):
     filePath = None
     dirToArchive = os.path.join(tempDir, 'analysis/')
     os.system('mkdir ' + dirToArchive)
-    
+
     if pathToInFile.endswith('.zip') or pathToInFile.endswith('.omex'):
         filePath = pathToInFile
     # otherwise, the input file was the top module SBML, so check for all the proper arguments to run the first-time simulation
@@ -57,7 +57,7 @@ def exec_analysis_jar(tempDir, archive_file, out_dir, directory, properties, ini
         print('Wrong file type', file=open('pylog.txt', 'a'))
         raise FileNotFoundError("File does not exist: {}".format(archive_file))
 
-    cmd = r"java -jar iBioSim/analysis/target/iBioSim-analysis-3.1.0-SNAPSHOT-jar-with-dependencies.jar " #hode sim is java based
+    cmd = r"java -jar /usr/local/iBioSim/analysis/target/iBioSim-analysis-3.1.0-SNAPSHOT-jar-with-dependencies.jar " #hode sim is java based
     if not directory == None:
         cmd += "-d " + directory + " "
     if not properties == None:
@@ -106,7 +106,7 @@ def exec_conversion_jar(tempDir, sbolFile, package, b, cf, d, e, esf, f, i, l, m
 
     outputDir = ''
 
-    cmd = r"java -jar iBioSim/conversion/target/iBioSim-conversion-3.1.0-SNAPSHOT-jar-with-dependencies.jar "
+    cmd = r"java -jar /usr/local/iBioSim/conversion/target/iBioSim-conversion-3.1.0-SNAPSHOT-jar-with-dependencies.jar "
     # add args to command
     if not b == None:
         cmd += '-b ' + b + ' '
@@ -253,7 +253,7 @@ def exec(request, type, tempDir):
             pathToArchive = os.path.join(tempDir, secure_filename(env_archive.filename))
             env_archive.save(pathToArchive)
             print('Saved environment archive to ' + pathToArchive, file=open('pylog.txt', 'a'))
-        
+
         print("Path to archive: " + pathToArchive, file=open('pylog.txt', 'a'))
 
     # Save file locally
@@ -294,7 +294,7 @@ def exec(request, type, tempDir):
             os.system('unzip ' + pathToArchive + ' -d ' + pathToArcDir)
             print('After unzipping archive:', file=open('pylog.txt', 'a'))
             print(os.listdir(pathToArcDir), file=open('pylog.txt', 'a'))
-            
+
             # delete template topModel file
             pathToTemplate = os.path.join(pathToArcDir, 'topModel.xml')
             os.system('rm ' + pathToTemplate)
@@ -309,26 +309,26 @@ def exec(request, type, tempDir):
             os.system('mv ' + pathToInFile + ' ' + pathToConvOutDir)
 
             print(os.listdir(pathToConvOutDir), file=open('pylog.txt', 'a'))
-            
+
             # move all files from conv_out into env_archive directory
             # and update manifest
             manifest = os.path.join(pathToArcDir, 'manifest.xml')
             man = open(manifest, 'r+')
             data=man.read()
             man.close()
-            
+
             # remove old topModel metadata:
             lines = ''
             for line in data.split('\n'):
                 if not './topModel.xml' in line:
                     lines += line + '\n'
-            
+
             data = lines
 
             new_manifest = os.path.join(tempDir,'manifest.xml')
             os.system('touch '+new_manifest)
             new_man = open(new_manifest,'w')
-            
+
             content = ''
             # move files and create string for new manifest entries
             for file in os.listdir(pathToConvOutDir):
@@ -341,7 +341,7 @@ def exec(request, type, tempDir):
                 os.system('mv ' + os.path.join(pathToConvOutDir, file) + ' ' + pathToArcDir)
             content += '</omexManifest>'
             data = data.replace('</omexManifest>',content)
-            
+
             new_man.write(data)
             new_man.close()
             os.system('rm ' + manifest)
