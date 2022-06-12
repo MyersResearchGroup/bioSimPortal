@@ -19,9 +19,9 @@ Without these parameters, iBioSim won't have any arguments to run the conversion
 
 ## Analysis (For COMBINE Archives)
 
-In Postman, simply attach a COMBINE Archive with a .zip extension to the body of the request, and send the request to:
+In Postman, attach a COMBINE Archive with a .zip extension to the body of the request, and send the request to:
 
-`http://localhost:5000/run`
+`http://localhost:5000/analyze`
 
 --------------------------------
 
@@ -29,7 +29,7 @@ In Postman, simply attach a COMBINE Archive with a .zip extension to the body of
 
 Attach the SBML file ending with 'topModule.xml' to the body of the request, and put the following in the request field:
 
-`http://localhost:5000/run`
+`http://localhost:5000/analyze`
 
 Then under the Params tab using the Key-Value Edit, add (at minimum) arguments for the simulation type, number of runs, and time limit for the simulation.
 
@@ -59,7 +59,7 @@ Argument Keys and Values should be in the following form:
 
 Attach the file to be converted in the body of the request, and put the following in the request field:
 
-`http://localhost:5000/run`
+`http://localhost:5000/convert`
 
 Argument Keys and Values should be in the following form:
 
@@ -87,3 +87,25 @@ Argument Keys and Values should be in the following form:
 | cello | (leave empty) | This option is for dynamic modeling of Cello parts and parametrization | -Cello |
 
 - Note: When the value of an argument's field is left blank, that key should still be checked if it needs to be included in the request.
+
+--------------------------------
+
+## Conversion and Analysis
+
+Attach the SBOL file in the body of the request, and put the following in the request field:
+
+`http://localhost:5000/convert_and_simulate`
+
+Argument key-value pairs follow the previously specified formats. Any and all arguments for conversion or analysis go into the query for this request.
+
+--------------------------------
+
+# Plug-in Endpoints
+
+*Plug-in endpoint information*
+
+## Status
+
+## Evaluate
+
+## Run
