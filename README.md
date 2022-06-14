@@ -23,8 +23,6 @@ In Postman, attach a COMBINE Archive with a .zip extension to the body of the re
 
 `http://localhost:5000/analyze`
 
-![Alt text](images/Analyze.png?raw=true "Parameters in Postman")
-
 --------------------------------
 
 ## Analysis (For SBML files)
@@ -32,6 +30,8 @@ In Postman, attach a COMBINE Archive with a .zip extension to the body of the re
 Attach the SBML file ending with 'topModule.xml' to the body of the request, and put the following in the request field:
 
 `http://localhost:5000/analyze`
+
+![Alt text](images/Analyze.png?raw=true "Parameters in Postman")
 
 Then under the Params tab using the Key-Value Edit, add (at minimum) arguments for the simulation type, number of runs, and time limit for the simulation.
 
@@ -62,6 +62,8 @@ Argument Keys and Values should be in the following form:
 Attach the file to be converted in the body of the request, and put the following in the request field:
 
 `http://localhost:5000/convert`
+
+![Alt text](images/Convert.png?raw=true "Parameters in Postman")
 
 Argument Keys and Values should be in the following form:
 
@@ -97,6 +99,8 @@ Argument Keys and Values should be in the following form:
 Attach the SBOL file in the body of the request, and put the following in the request field:
 
 `http://localhost:5000/convert_and_simulate`
+
+![Alt text](images/Convertandanalysis.png?raw=true "Parameters in Postman")
 
 Argument key-value pairs follow the previously specified formats. Any and all arguments for conversion or analysis go into the query for this request.
 
