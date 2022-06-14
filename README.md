@@ -23,6 +23,8 @@ In Postman, attach a COMBINE Archive with a .zip extension to the body of the re
 
 `http://localhost:5000/analyze`
 
+![Alt text](images/Analyze.png?raw=true "Parameters in Postman")
+
 --------------------------------
 
 ## Analysis (For SBML files)
