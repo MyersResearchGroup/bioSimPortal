@@ -17,7 +17,9 @@ RUN apt-get update --fix-missing \
 	&& DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get install -y unzip
-	
+
+WORKDIR /flaskapp
+
 COPY . .
 
 RUN pip3 install -r requirements.txt
@@ -26,4 +28,4 @@ RUN pip3 install -r requirements.txt
 ENV LC_ALL=C.UTF-8
 ENV LANG=C.UTF-8
 
-ENTRYPOINT FLASK_APP=/app.py flask run --host=0.0.0.0
+ENTRYPOINT FLASK_APP=app.py flask run --host=0.0.0.0
