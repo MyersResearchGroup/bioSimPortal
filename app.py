@@ -39,34 +39,35 @@ def convert():
 @app.route('/convert_and_simulate', methods=['POST'])
 def conv_and_sim():
     print('Running conversion and analysis!', file=open('pylog.txt', 'a'))
-    with tempfile.TemporaryDirectory() as tempDir:
-        c_output = ex.exec(request, 'both', tempDir)
-        if c_output == '':
-            return make_response('An error occured during conversion', 202)
+    # with tempfile.TemporaryDirectory() as tempDir:
+    tempDir = tempfile.mkdtemp()
+    c_output = ex.exec(request, 'both', tempDir)
+    if c_output == '':
+        return make_response('An error occured during conversion', 202)
+    
+    # if conversion returns a zip file, send the archive straight to analysis
+    print("Run analysis...", file=open('pylog.txt', 'a'))
+    if c_output.endswith('.zip'):
+        c_omex = os.path.join(tempDir,'c.omex')
+        os.system('mv ' + c_output + ' ' + c_omex)
         
-        # if conversion returns a zip file, send the archive straight to analysis
-        print("Run analysis...", file=open('pylog.txt', 'a'))
-        if c_output.endswith('.zip'):
-            c_omex = os.path.join(tempDir,'c.omex')
-            os.system('mv ' + c_output + ' ' + c_omex)
-            
-            output = ex.analysis(tempDir, ex.args.getArgs(), c_omex)
-            return send_file(output, as_attachment=True, attachment_filename='sim_output.zip')
+        output = ex.analysis(tempDir, ex.args.getArgs(), c_omex)
+        return send_file(output, as_attachment=True, attachment_filename='sim_output.zip')
 
-        # otherwise, simulate topModule with default/given parameters
-        # copy topModule file to new working tempDir
-        with tempfile.TemporaryDirectory() as aTempDir:
-            os.system('cp ' + c_output + ' ' + aTempDir)
+    # otherwise, simulate topModule with default/given parameters
+    # copy topModule file to new working tempDir
+    with tempfile.TemporaryDirectory() as aTempDir:
+        os.system('cp ' + c_output + ' ' + aTempDir)
 
-            topMod = os.listdir(aTempDir)[0]
-            print("topMod: " + topMod, file=open('pylog.txt', 'a'))
-            conv_output = os.path.join(aTempDir, topMod)
-            print("conversion output: " + conv_output, file=open('pylog.txt', 'a'))
+        topMod = os.listdir(aTempDir)[0]
+        print("topMod: " + topMod, file=open('pylog.txt', 'a'))
+        conv_output = os.path.join(aTempDir, topMod)
+        print("conversion output: " + conv_output, file=open('pylog.txt', 'a'))
 
-            
-            output = ex.analysis(aTempDir, ex.args.getArgs(), conv_output)
-            # sleep(100)
-            return send_file(output, as_attachment=True, attachment_filename='sim_output.zip')
+        
+        output = ex.analysis(aTempDir, ex.args.getArgs(), conv_output)
+        # sleep(100)
+        return send_file(output, as_attachment=True, attachment_filename='sim_output.zip')
 
 @app.route('/status', methods=['GET', 'POST'])
 # Status endpoint to communicate that the plug-in is up and running
