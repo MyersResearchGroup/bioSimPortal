@@ -71,7 +71,7 @@ def conv_and_sim():
 @app.route('/status', methods=['GET', 'POST'])
 # Status endpoint to communicate that the plug-in is up and running
 def status():
-    return("The Download iBioSim Plugin Flask Server is up and running")
+    return("The iBioSim Server V1.0.1 is up and running")
 
 # Follow SBH plug-in structure
 @app.route('/evaluate', methods=['GET', 'POST'])
